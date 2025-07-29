@@ -8,14 +8,17 @@ import { Message } from 'primereact/message';
 import { Divider } from 'primereact/divider';
 import { Badge } from 'primereact/badge';
 import { ProgressBar } from 'primereact/progressbar';
+import { InputSwitch } from 'primereact/inputswitch';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext'; // ThemeContext'inizi doğru yoldan import edin
 import { authService } from '../services/authService';
 
 const AuthPage = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
-  
+  const { theme, toggleTheme } = useTheme(); // Temayı ve değiştiricisini kullanın
+
   // Login state
   const [loginData, setLoginData] = useState({ username: '', password: '' });
   const [loginMessage, setLoginMessage] = useState(null);
@@ -29,7 +32,7 @@ const AuthPage = () => {
   // Password strength checker
   const getPasswordStrength = (password) => {
     if (!password) return { strength: 0, label: '', color: '' };
-    
+
     let strength = 0;
     if (password.length >= 8) strength += 25;
     if (/[A-Z]/.test(password)) strength += 25;
@@ -51,13 +54,13 @@ const AuthPage = () => {
 
     try {
       const result = await authService.login(loginData);
-      login(result.token, result.username);
+      login(result.token, result.user);
       setLoginMessage({ severity: 'success', text: '✅ Giriş başarılı! Yönlendiriliyor...' });
       setTimeout(() => navigate('/upload'), 1000);
     } catch (error) {
-      setLoginMessage({ 
-        severity: 'error', 
-        text: `❌ ${error.response?.data || 'Giriş başarısız!'}`
+      setLoginMessage({
+        severity: 'error',
+        text: `❌ ${error.response?.data?.error || 'Giriş başarısız!'}`
       });
     } finally {
       setLoginLoading(false);
@@ -71,15 +74,15 @@ const AuthPage = () => {
 
     try {
       await authService.register(registerData);
-      setRegisterMessage({ 
-        severity: 'success', 
-        text: '🎉 Kayıt başarılı! Artık giriş yapabilirsiniz.' 
+      setRegisterMessage({
+        severity: 'success',
+        text: '🎉 Kayıt başarılı! Artık giriş yapabilirsiniz.'
       });
       setRegisterData({ username: '', email: '', password: '' });
     } catch (error) {
-      setRegisterMessage({ 
-        severity: 'error', 
-        text: `❌ ${error.response?.data || 'Kayıt başarısız!'}`
+      setRegisterMessage({
+        severity: 'error',
+        text: `❌ ${error.response?.data?.error || 'Kayıt başarısız!'}`
       });
     } finally {
       setRegisterLoading(false);
@@ -87,13 +90,16 @@ const AuthPage = () => {
   };
 
   const isLoginFormValid = loginData.username && loginData.password;
-  const isRegisterFormValid = registerData.username && registerData.email && 
-                             registerData.password && passwordStrength.strength >= 50;
+  const isRegisterFormValid = registerData.username && registerData.email &&
+    registerData.password && passwordStrength.strength >= 50;
 
   return (
     <>
-      {/* Global CSS for animated background */}
+      {/* Genel arka plan ve glass effect için CSS */}
       <style jsx>{`
+        /* Card background and border will now be handled by PrimeReact theme */
+        /* You can define global text colors if not using PrimeReact's theming for text */
+
         .auth-background {
           position: fixed;
           top: 0;
@@ -105,7 +111,7 @@ const AuthPage = () => {
           animation: gradientShift 15s ease infinite;
           z-index: -2;
         }
-        
+
         .auth-background::before {
           content: '';
           position: absolute;
@@ -116,7 +122,7 @@ const AuthPage = () => {
           background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Ccircle cx='30' cy='30' r='1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") repeat;
           animation: float 20s ease-in-out infinite;
         }
-        
+
         .auth-background::after {
           content: '';
           position: absolute;
@@ -129,30 +135,41 @@ const AuthPage = () => {
                       radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.3) 0%, transparent 50%);
           animation: pulse 8s ease-in-out infinite alternate;
         }
-        
+
         @keyframes gradientShift {
           0% { background-position: 0% 50%; }
           50% { background-position: 100% 50%; }
           100% { background-position: 0% 50%; }
         }
-        
+
         @keyframes float {
           0%, 100% { transform: translateY(0px) rotate(0deg); }
           50% { transform: translateY(-20px) rotate(180deg); }
         }
-        
+
         @keyframes pulse {
           0% { opacity: 0.5; }
           100% { opacity: 0.8; }
         }
-        
+
+        /* Glass effect will need to be slightly dynamic if card background changes dramatically */
         .glass-effect {
           backdrop-filter: blur(20px);
-          background: rgba(255, 255, 255, 0.95);
-          border: 1px solid rgba(255, 255, 255, 0.3);
+          /* PrimeReact theme will handle the background and border of the card itself. */
+          /* This rgba color should be a subtle overlay that works with both light/dark PR themes. */
+          background: rgba(255, 255, 255, 0.15); /* Hafif beyaz overlay */
+          border: 1px solid rgba(255, 255, 255, 0.1); /* Hafif beyaz kenarlık */
           box-shadow: 0 25px 45px rgba(0, 0, 0, 0.1);
+          transition: background 0.3s ease, border 0.3s ease;
         }
-        
+
+        /* Dark mode for glass effect's specific overlay (adjust as needed for PR dark theme) */
+        .p-dark .glass-effect { /* PrimeReact'in dark sınıfını kullanın, body'ye eklenecek */
+          background: rgba(0, 0, 0, 0.15); /* Hafif siyah overlay */
+          border: 1px solid rgba(0, 0, 0, 0.1); /* Hafif siyah kenarlık */
+        }
+
+
         .floating-elements {
           position: fixed;
           top: 0;
@@ -162,14 +179,14 @@ const AuthPage = () => {
           pointer-events: none;
           z-index: -1;
         }
-        
+
         .floating-element {
           position: absolute;
           background: rgba(255, 255, 255, 0.1);
           border-radius: 50%;
           animation: floatUpDown 6s ease-in-out infinite;
         }
-        
+
         .floating-element:nth-child(1) {
           width: 60px;
           height: 60px;
@@ -177,7 +194,7 @@ const AuthPage = () => {
           left: 10%;
           animation-delay: 0s;
         }
-        
+
         .floating-element:nth-child(2) {
           width: 80px;
           height: 80px;
@@ -185,7 +202,7 @@ const AuthPage = () => {
           right: 10%;
           animation-delay: 2s;
         }
-        
+
         .floating-element:nth-child(3) {
           width: 40px;
           height: 40px;
@@ -193,7 +210,7 @@ const AuthPage = () => {
           left: 80%;
           animation-delay: 4s;
         }
-        
+
         .floating-element:nth-child(4) {
           width: 100px;
           height: 100px;
@@ -201,7 +218,7 @@ const AuthPage = () => {
           left: 20%;
           animation-delay: 1s;
         }
-        
+
         .floating-element:nth-child(5) {
           width: 50px;
           height: 50px;
@@ -209,7 +226,7 @@ const AuthPage = () => {
           right: 30%;
           animation-delay: 3s;
         }
-        
+
         @keyframes floatUpDown {
           0%, 100% {
             transform: translateY(0px) scale(1);
@@ -220,7 +237,7 @@ const AuthPage = () => {
             opacity: 0.9;
           }
         }
-        
+
         .auth-container {
           position: relative;
           z-index: 1;
@@ -229,7 +246,7 @@ const AuthPage = () => {
 
       {/* Animated Background */}
       <div className="auth-background"></div>
-      
+
       {/* Floating Elements */}
       <div className="floating-elements">
         <div className="floating-element"></div>
@@ -247,16 +264,23 @@ const AuthPage = () => {
             <div className="mb-3">
               <i className="pi pi-shield text-6xl text-primary"></i>
             </div>
-            <h1 className="text-3xl font-bold text-900 m-0">
+            <h1 className="text-3xl font-bold m-0 text-gray-900 dark:text-white">
               Hoş Geldiniz
             </h1>
-            <p className="text-600 mt-2 mb-0">
+            <p className="mt-2 mb-0 text-gray-600 dark:text-gray-300">
               Hesabınıza giriş yapın veya yeni hesap oluşturun
             </p>
           </div>
 
+          {/* Tema Değiştirici */}
+          <div className="flex justify-content-center align-items-center mb-4">
+            <i className="pi pi-sun mr-2 text-xl text-600" style={{ opacity: theme === 'light' ? 1 : 0.5 }}></i>
+            <InputSwitch checked={theme === 'dark'} onChange={toggleTheme} />
+            <i className="pi pi-moon ml-2 text-xl text-600" style={{ opacity: theme === 'dark' ? 1 : 0.5 }}></i>
+          </div>
+
           <TabView className="custom-tabview">
-            <TabPanel 
+            <TabPanel
               header={
                 <div className="flex align-items-center">
                   <i className="pi pi-sign-in mr-2"></i>
@@ -272,13 +296,13 @@ const AuthPage = () => {
                   <InputText
                     id="loginUsername"
                     value={loginData.username}
-                    onChange={(e) => setLoginData({...loginData, username: e.target.value})}
+                    onChange={(e) => setLoginData({ ...loginData, username: e.target.value })}
                     placeholder="Kullanıcı adınızı girin"
                     className="p-inputtext-lg"
                     required
                   />
                 </div>
-                
+
                 <div className="field">
                   <label htmlFor="loginPassword" className="font-semibold text-900 mb-2 block">
                     <i className="pi pi-lock mr-2"></i>Şifre
@@ -286,7 +310,7 @@ const AuthPage = () => {
                   <Password
                     id="loginPassword"
                     value={loginData.password}
-                    onChange={(e) => setLoginData({...loginData, password: e.target.value})}
+                    onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
                     placeholder="Şifrenizi girin"
                     feedback={false}
                     toggleMask
@@ -297,7 +321,7 @@ const AuthPage = () => {
 
                 {loginLoading && (
                   <div className="mb-3">
-                    <ProgressBar mode="indeterminate" style={{height: '4px'}} />
+                    <ProgressBar mode="indeterminate" style={{ height: '4px' }} />
                     <p className="text-center text-600 mt-2 mb-0">
                       <i className="pi pi-spin pi-spinner mr-2"></i>
                       Giriş yapılıyor...
@@ -305,8 +329,8 @@ const AuthPage = () => {
                   </div>
                 )}
 
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   label={loginLoading ? "Giriş Yapılıyor..." : "Giriş Yap"}
                   icon={loginLoading ? "pi pi-spin pi-spinner" : "pi pi-sign-in"}
                   className="w-full p-button-lg font-semibold"
@@ -315,8 +339,8 @@ const AuthPage = () => {
                 />
 
                 {loginMessage && (
-                  <Message 
-                    severity={loginMessage.severity} 
+                  <Message
+                    severity={loginMessage.severity}
                     text={loginMessage.text}
                     className="mt-3"
                   />
@@ -324,7 +348,7 @@ const AuthPage = () => {
               </form>
             </TabPanel>
 
-            <TabPanel 
+            <TabPanel
               header={
                 <div className="flex align-items-center">
                   <i className="pi pi-user-plus mr-2"></i>
@@ -340,7 +364,7 @@ const AuthPage = () => {
                   <InputText
                     id="registerUsername"
                     value={registerData.username}
-                    onChange={(e) => setRegisterData({...registerData, username: e.target.value})}
+                    onChange={(e) => setRegisterData({ ...registerData, username: e.target.value })}
                     placeholder="Kullanıcı adı seçin"
                     className="p-inputtext-lg"
                     required
@@ -355,13 +379,13 @@ const AuthPage = () => {
                     id="registerEmail"
                     type="email"
                     value={registerData.email}
-                    onChange={(e) => setRegisterData({...registerData, email: e.target.value})}
+                    onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
                     placeholder="email@example.com"
                     className="p-inputtext-lg"
                     required
                   />
                 </div>
-                
+
                 <div className="field">
                   <label htmlFor="registerPassword" className="font-semibold text-900 mb-2 block">
                     <i className="pi pi-lock mr-2"></i>Şifre
@@ -369,7 +393,7 @@ const AuthPage = () => {
                   <Password
                     id="registerPassword"
                     value={registerData.password}
-                    onChange={(e) => setRegisterData({...registerData, password: e.target.value})}
+                    onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
                     placeholder="Güçlü bir şifre oluşturun"
                     toggleMask
                     className="p-password-lg"
@@ -379,25 +403,25 @@ const AuthPage = () => {
                     strongLabel="Güçlü"
                     required
                   />
-                  
+
                   {/* Custom Password Strength Indicator */}
                   {registerData.password && (
                     <div className="mt-2">
                       <div className="flex align-items-center justify-content-between mb-1">
                         <span className="text-sm text-600">Şifre Gücü:</span>
-                        <Badge 
-                          value={passwordStrength.label} 
+                        <Badge
+                          value={passwordStrength.label}
                           severity={passwordStrength.color}
                           size="small"
                         />
                       </div>
-                      <ProgressBar 
-                        value={passwordStrength.strength} 
-                        style={{height: '4px'}}
+                      <ProgressBar
+                        value={passwordStrength.strength}
+                        style={{ height: '4px' }}
                         color={
                           passwordStrength.color === 'danger' ? '#ef4444' :
-                          passwordStrength.color === 'warning' ? '#f59e0b' :
-                          passwordStrength.color === 'info' ? '#3b82f6' : '#10b981'
+                            passwordStrength.color === 'warning' ? '#f59e0b' :
+                              passwordStrength.color === 'info' ? '#3b82f6' : '#10b981'
                         }
                       />
                       <div className="text-xs text-600 mt-1">
@@ -418,7 +442,7 @@ const AuthPage = () => {
 
                 {registerLoading && (
                   <div className="mb-3">
-                    <ProgressBar mode="indeterminate" style={{height: '4px'}} />
+                    <ProgressBar mode="indeterminate" style={{ height: '4px' }} />
                     <p className="text-center text-600 mt-2 mb-0">
                       <i className="pi pi-spin pi-spinner mr-2"></i>
                       Hesap oluşturuluyor...
@@ -426,8 +450,8 @@ const AuthPage = () => {
                   </div>
                 )}
 
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   label={registerLoading ? "Kayıt Oluşturuluyor..." : "Hesap Oluştur"}
                   icon={registerLoading ? "pi pi-spin pi-spinner" : "pi pi-user-plus"}
                   className="w-full p-button-lg font-semibold"
@@ -436,8 +460,8 @@ const AuthPage = () => {
                 />
 
                 {registerMessage && (
-                  <Message 
-                    severity={registerMessage.severity} 
+                  <Message
+                    severity={registerMessage.severity}
                     text={registerMessage.text}
                     className="mt-3"
                   />

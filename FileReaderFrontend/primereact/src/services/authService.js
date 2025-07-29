@@ -8,12 +8,17 @@ export const authService = {
 
   login: async (credentials) => {
     const response = await api.post('/api/auth/login', credentials);
-    return response.data;
+    return {
+      token: response.data.token,
+      user: response.data.user
+    };
   },
 
   logout: () => {
     localStorage.removeItem('jwtToken');
     localStorage.removeItem('username');
+    localStorage.removeItem('userId');
+    localStorage.removeItem('userRole');
   }
 };
 export default authService;

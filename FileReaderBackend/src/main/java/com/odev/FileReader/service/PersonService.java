@@ -2,6 +2,7 @@ package com.odev.FileReader.service;
 
 import com.odev.FileReader.dto.PersonDTO;
 import com.odev.FileReader.model.Person;
+import com.odev.FileReader.model.Role;
 import com.odev.FileReader.repository.PersonRepository;
 import jakarta.transaction.Transactional;
 import jakarta.validation.ConstraintViolation;
@@ -25,6 +26,8 @@ public class PersonService {
     private Validator validator;
     @Autowired
     private ObjectMapper objectMapper;
+    @Autowired
+    private RoleService roleService;
 
     // JSON dosyalarını işle
     @Transactional
@@ -42,6 +45,11 @@ public class PersonService {
                         p.setName(dto.getName());
                         p.setEmail(dto.getEmail());
                         p.setAge(dto.getAge());
+                        
+                        // Varsayılan rol ataması (USER)
+                        Role userRole = roleService.getOrCreateRole("USER");
+                        p.setRole(userRole);
+                        
                         validList.add(p);
                     } else {
                         Map<String, Object> err = new HashMap<>();
@@ -85,6 +93,11 @@ public class PersonService {
                         p.setName(dto.getName());
                         p.setEmail(dto.getEmail());
                         p.setAge(dto.getAge());
+                        
+                        // Varsayılan rol ataması (USER)
+                        Role userRole = roleService.getOrCreateRole("USER");
+                        p.setRole(userRole);
+                        
                         validList.add(p);
                     } else {
                         Map<String, Object> err = new HashMap<>();
@@ -123,4 +136,4 @@ public class PersonService {
     public List<Person> getAllPersons() {
     return personRepository.findAll();
 }
-} 
+}

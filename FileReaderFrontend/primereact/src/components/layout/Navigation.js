@@ -20,7 +20,22 @@ const Navigation = () => {
       label: 'Kişiler',
       icon: 'pi pi-users',
       command: () => navigate('/persons')
-    }
+    },
+    {
+      label: 'Kategoriler',
+      icon: 'pi pi-tags',
+      command: () => navigate('/categories')
+    },
+    {
+      label: 'Envanter',
+      icon: 'pi pi-box',
+      command: () => navigate('/inventory')
+    },
+    // {
+    //   label: 'Ekipman Ekle',
+    //   icon: 'pi pi-plus',
+    //   command: () => navigate('/inventory/assign')
+    // }
   ];
 
   const handleLogout = () => {
@@ -36,10 +51,10 @@ const Navigation = () => {
         onClick={toggleTheme}
         tooltip={theme === 'dark' ? 'Açık Mod' : 'Koyu Mod'}
       />
-      <span className="text-sm">Giriş yapan: {user}</span>
-      <Button 
-        label="Çıkış" 
-        icon="pi pi-sign-out" 
+      <span className="text-sm">Giriş yapan: {user?.username} {user?.role && `(${user.role})`}</span>
+      <Button
+        label="Çıkış"
+        icon="pi pi-sign-out"
         onClick={handleLogout}
         className="p-button-outlined p-button-sm"
       />

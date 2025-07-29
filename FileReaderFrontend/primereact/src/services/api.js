@@ -11,9 +11,20 @@ const api = axios.create({
 
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('jwtToken');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    // Token gerektirmeyen endpoint'ler
+    const publicEndpoints = [
+      '/api/upload/json',
+      '/api/upload/xml'
+    ];
+    
+    // Eğer istek public endpoint'e yapılmıyorsa token ekle
+    const isPublicEndpoint = publicEndpoints.some(endpoint => config.url.includes(endpoint));
+    
+    if (!isPublicEndpoint) {
+      const token = localStorage.getItem('jwtToken');
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
     return config;
   },

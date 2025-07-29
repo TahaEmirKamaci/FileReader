@@ -15,9 +15,10 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/api/users")
 @CrossOrigin
 public class UserController {
     @Autowired
@@ -25,27 +26,26 @@ public class UserController {
     @Autowired
     private JwtUtil jwtUtil;
 
-    @PostMapping("/register")
-    public ResponseEntity<?> register(@Valid @RequestBody UserDTO userDTO) {
-        User user = userService.register(userDTO);
-        return ResponseEntity.ok(user);
+    @GetMapping("/all")
+    public ResponseEntity<?> getAllUsers() {
+        List<User> users = userService.getAllUsers();
+        List<Map<String, Object>> result = users.stream()
+            .map(u -> {
+                Map<String, Object> map = new HashMap<>();
+                map.put("id", u.getId());
+                map.put("username", u.getUsername());
+                return map;
+            })
+            .collect(Collectors.toList());
+        return ResponseEntity.ok(result);
+    }
+    
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getUserById(@PathVariable Long id) {
+        return userService.getUserById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody UserDTO userDTO) {
-        return userService.login(userDTO.getUsername(), userDTO.getPassword())
-                .<ResponseEntity<?>>map(user -> {
-                    String token = jwtUtil.generateToken(user.getUsername());
-                    Map<String, Object> resp = new HashMap<>();
-                    resp.put("token", token);
-                    resp.put("username", user.getUsername());
-                    return ResponseEntity.ok(resp);
-                })
-                .orElse(ResponseEntity.status(401).body("Kullanıcı adı veya şifre hatalı!"));
-    }
 
-    @GetMapping("/users")
-    public ResponseEntity<List<User>> getAllUsers() {
-        return ResponseEntity.ok(userService.getAllUsers());
-    }
-} 
+}

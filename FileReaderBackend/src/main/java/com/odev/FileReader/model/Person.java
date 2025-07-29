@@ -1,5 +1,6 @@
 package com.odev.FileReader.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 @Entity
@@ -8,9 +9,14 @@ public class Person {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+
     private String name;
     private String email;
     private Integer age;
+    
+    @ManyToOne
+    @JoinColumn(name = "role_id")
+    private Role role;
 
     // Getter ve Setter'lar
     public Long getId() { return id; }
@@ -21,4 +27,7 @@ public class Person {
     public void setEmail(String email) { this.email = email; }
     public Integer getAge() { return age; }
     public void setAge(Integer age) { this.age = age; }
-} 
+    @JsonIgnore
+    public Role getRole() { return role; }
+    public void setRole(Role role) { this.role = role; }
+}

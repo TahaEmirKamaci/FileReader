@@ -1,30 +1,35 @@
 package com.odev.FileReader.security;
 
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-import java.io.IOException;
+
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 @Component
 public class JwtFilter extends OncePerRequestFilter {
     @Autowired
     private JwtUtil jwtUtil;
 
-    // JWT gerekmeyen endpointler burada tanımlanır
     private static final String[] PUBLIC_ENDPOINTS = {
-        "/api/auth/login",
-        "/api/auth/register",
-        "/api/upload/json",
-        "/api/upload/xml",
-        "/api/persons",
-        "/index.html", "/", "/static/"
+            "/api/auth/login",
+            "/api/auth/register",
+            "/api/upload/json",
+            "/api/upload/xml",
+            "/api/persons/**",
+            "/api/categories/**",
+            "/api/inventory/**", // Add this line
+            "/index.html",
+            "/",
+            "/static/**"
     };
 
     @Override
@@ -32,11 +37,18 @@ public class JwtFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         String path = request.getRequestURI();
-        // Eğer istek public endpointlerden birine ise JWT kontrolü yapmadan devam et
         for (String endpoint : PUBLIC_ENDPOINTS) {
-            if (path.equals(endpoint) || path.startsWith(endpoint)) {
-                filterChain.doFilter(request, response);
-                return;
+            if (endpoint.endsWith("/**")) {
+                String base = endpoint.replace("/**", "");
+                if (path.startsWith(base)) {
+                    filterChain.doFilter(request, response);
+                    return;
+                }
+            } else {
+                if (path.equals(endpoint)) {
+                    filterChain.doFilter(request, response);
+                    return;
+                }
             }
         }
 

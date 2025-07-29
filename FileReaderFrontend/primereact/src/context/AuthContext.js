@@ -12,7 +12,11 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem('jwtToken') || '');
-  const [user, setUser] = useState(localStorage.getItem('username') || '');
+  const [user, setUser] = useState(() => {
+    const username = localStorage.getItem('username');
+    const role = localStorage.getItem('userRole');
+    return username ? { id: localStorage.getItem('userId'), username, role } : null;
+  });
   const [isAuthenticated, setIsAuthenticated] = useState(!!token);
 
   useEffect(() => {
@@ -23,14 +27,18 @@ export const AuthProvider = ({ children }) => {
     setToken(tokenData);
     setUser(userData);
     localStorage.setItem('jwtToken', tokenData);
-    localStorage.setItem('username', userData);
+    localStorage.setItem('username', userData.username);
+    localStorage.setItem('userId', userData.id);
+    localStorage.setItem('userRole', userData.role);
   };
 
   const logout = () => {
     setToken('');
-    setUser('');
+    setUser(null);
     localStorage.removeItem('jwtToken');
     localStorage.removeItem('username');
+    localStorage.removeItem('userId');
+    localStorage.removeItem('userRole');
   };
 
   const value = {

@@ -201,9 +201,9 @@ const PersonsPage = () => {
 
   const rightToolbarTemplate = () => {
     return (
-      <div className="flex align-items-end " >
+      <div className="flex align-items-center " >
         <span className="p-input-icon-right">
-          <i className="pi pi-spin pi-spinner" />
+          <i className="pi pi-spin" />
           <InputText
             value={globalFilter}
             onChange={(e) => setGlobalFilter(e.target.value)}
